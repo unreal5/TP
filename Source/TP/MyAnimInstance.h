@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LocomotionDirection.h"
 #include "Animation/AnimInstance.h"
 #include "MyAnimInstance.generated.h"
 
@@ -14,6 +15,7 @@ UCLASS()
 class TP_API UMyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
+	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 
 public:
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -44,19 +46,28 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VelocityData")
 	float LocomotionAngle;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LocomotionData")
+	ELocomotionDirection LocomotionDirection;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LocomotionData")
+	FLocomotionSettings LocomotionSettings;
+
 private:
 	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
 	void GetLocationData();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
 	void GetRotationData();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
 	void GetVelocityData();
 
 	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
 	void GetAccelerationData();
 
+	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
+	void CalculateLocomotionDirection(float CurrentLocomotionAngle, ELocomotionDirection CurrentDirection,
+	                                  FLocomotionSettings Settings);
+
 public:
-	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 };

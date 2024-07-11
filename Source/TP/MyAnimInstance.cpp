@@ -5,6 +5,19 @@
 
 #include "KismetAnimationLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+
+void UMyAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+
+	GetLocationData();
+	GetRotationData();
+	GetVelocityData();
+	GetAccelerationData();
+
+	CalculateLocomotionDirection(LocomotionAngle, LocomotionDirection, LocomotionSettings);
+}
 
 UCharacterMovementComponent* UMyAnimInstance::GetCharacterMovement() const
 {
@@ -52,12 +65,21 @@ void UMyAnimInstance::GetAccelerationData()
 	IsAccelerating = !Acceleration.IsNearlyZero();
 }
 
-void UMyAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
+void UMyAnimInstance::CalculateLocomotionDirection(float CurrentLocomotionAngle, ELocomotionDirection CurrentDirection,
+                                                   FLocomotionSettings Settings)
 {
-	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
-
-	GetLocationData();
-	GetRotationData();
-	GetVelocityData();
-	GetAccelerationData();
+	// InRange_FloatFloat: Returns true if Value is in the range [A, B], false otherwise. Includes the boundaries.
+	// 因此，不在[-135,+135]范围内，则是后退方向
+	if (!UKismetMathLibrary::InRange_FloatFloat(CurrentLocomotionAngle, Settings.BMin, Settings.BMax, true, true))
+	{
+		LocomotionDirection = ELocomotionDirection::Backward;
+	}
+	else if (UKismetMathLibrary::InRange_FloatFloat(CurrentLocomotionAngle, Settings.FMin, Settings.FMax, true, true))
+	{
+		LocomotionDirection = ELocomotionDirection::Forward;
+	}
+	else
+	{
+		LocomotionDirection = CurrentLocomotionAngle > 0.0f ? ELocomotionDirection::Right : ELocomotionDirection::Left;
+	}
 }
