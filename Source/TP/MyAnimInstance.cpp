@@ -15,8 +15,6 @@ void UMyAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	GetRotationData();
 	GetVelocityData();
 	GetAccelerationData();
-
-	CalculateLocomotionDirection(LocomotionAngle, LocomotionDirection, LocomotionSettings);
 }
 
 UCharacterMovementComponent* UMyAnimInstance::GetCharacterMovement() const
@@ -44,6 +42,8 @@ void UMyAnimInstance::GetVelocityData()
 	CharacterVelocity2D = FVector(CharacterVelocity.X, CharacterVelocity.Y, 0.0f);
 
 	LocomotionAngle = UKismetAnimationLibrary::CalculateDirection(CharacterVelocity2D, WorldRotaiton);
+
+	LocomotionDirection = CalculateLocomotionDirection(LocomotionAngle, LocomotionDirection, FLocomotionSettings{});
 }
 
 void UMyAnimInstance::GetRotationData()
@@ -65,21 +65,36 @@ void UMyAnimInstance::GetAccelerationData()
 	IsAccelerating = !Acceleration.IsNearlyZero();
 }
 
-void UMyAnimInstance::CalculateLocomotionDirection(float CurrentLocomotionAngle, ELocomotionDirection CurrentDirection,
-                                                   FLocomotionSettings Settings)
+ELocomotionDirection UMyAnimInstance::CalculateLocomotionDirection(float CurrentLocomotionAngle,
+                                                                   ELocomotionDirection CurrentDirection,
+                                                                   FLocomotionSettings Settings)
 {
+	switch (CurrentDirection)
+	{
+	case ELocomotionDirection::Forward:
+		Settings.FMax += Settings.DeadZone;
+		Settings.FMin -= Settings.DeadZone;
+		break;
+	case ELocomotionDirection::Backward:
+		Settings.BMax -= Settings.DeadZone;
+		Settings.BMin += Settings.DeadZone;
+		break;
+	default:
+		break;
+	}
+
 	// InRange_FloatFloat: Returns true if Value is in the range [A, B], false otherwise. Includes the boundaries.
 	// 因此，不在[-135,+135]范围内，则是后退方向
 	if (!UKismetMathLibrary::InRange_FloatFloat(CurrentLocomotionAngle, Settings.BMin, Settings.BMax, true, true))
 	{
-		LocomotionDirection = ELocomotionDirection::Backward;
+		return ELocomotionDirection::Backward;
 	}
 	else if (UKismetMathLibrary::InRange_FloatFloat(CurrentLocomotionAngle, Settings.FMin, Settings.FMax, true, true))
 	{
-		LocomotionDirection = ELocomotionDirection::Forward;
+		return ELocomotionDirection::Forward;
 	}
 	else
 	{
-		LocomotionDirection = CurrentLocomotionAngle > 0.0f ? ELocomotionDirection::Right : ELocomotionDirection::Left;
+		return CurrentLocomotionAngle > 0.0f ? ELocomotionDirection::Right : ELocomotionDirection::Left;
 	}
 }

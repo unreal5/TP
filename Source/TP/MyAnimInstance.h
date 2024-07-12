@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Gait.h"
 #include "LocomotionDirection.h"
 #include "Animation/AnimInstance.h"
 #include "MyAnimInstance.generated.h"
@@ -49,25 +50,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LocomotionData")
 	ELocomotionDirection LocomotionDirection;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LocomotionData")
-	FLocomotionSettings LocomotionSettings;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GaitData")
+	EGait CurrentGait;
 
 private:
-	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
+	UFUNCTION(meta=(BlueprintThreadSafe))
 	void GetLocationData();
 
-	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
+	UFUNCTION(meta=(BlueprintThreadSafe))
 	void GetRotationData();
 
-	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
+	UFUNCTION(meta=(BlueprintThreadSafe))
 	void GetVelocityData();
 
-	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
+	UFUNCTION(meta=(BlueprintThreadSafe))
 	void GetAccelerationData();
 
-	UFUNCTION(BlueprintCallable, Category = "动画相关函数", meta=(BlueprintThreadSafe))
-	void CalculateLocomotionDirection(float CurrentLocomotionAngle, ELocomotionDirection CurrentDirection,
-	                                  FLocomotionSettings Settings);
-
-public:
+	UFUNCTION(meta=(BlueprintThreadSafe))
+	ELocomotionDirection CalculateLocomotionDirection(float CurrentLocomotionAngle,
+	                                                  ELocomotionDirection CurrentDirection,
+	                                                  FLocomotionSettings Settings);
 };
